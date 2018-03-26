@@ -41,18 +41,50 @@ class event_image:
 		self.N_buffer = pixel_buffer
 		self.events_pos = np.zeros((nr,nc,pixel_buffer))
 		self.events_neg = np.zeros((nr,nc,pixel_buffer))
+		self.event_im = np.zeros((nr,nc,3))
+		
+		self.v_pos_x = np.zeros((nr,nc))
+		self.v_pos_y = np.zeros((nr,nc))
+		self.v_neg_x = np.zeros((nr,nc))
+		self.v_neg_y = np.zeros((nr,nc))
+		
+		self.vx = np.zeros((nr,nc))
+		self.vy = np.zeros((nr,nc))
 
+	def reset_buffer(self,t,t_expire):
+		self.v_pos_x[ (self.events_pos < (t - t_expire))[:,:,0] ] = 0
+		self.v_pos_y[ (self.events_pos < (t - t_expire))[:,:,0] ] = 0
+		self.v_neg_x[ (self.events_neg < (t - t_expire))[:,:,0] ] = 0
+		self.v_neg_y[ (self.events_neg < (t - t_expire))[:,:,0] ] = 0
+
+		self.events_pos[self.events_pos < (t - t_expire)] = 0
+		self.events_neg[self.events_neg < (t - t_expire)] = 0
 
 	def insert_event(self,x,y,polarity,time):
 
 		if polarity == 1:
-			self.events_pos[y][x][1:] = self.events_neg[y][x][0:-1]
+			self.events_pos[y][x][1:] = self.events_pos[y][x][0:-1]
 			self.events_pos[y][x][0] = time
 		else:
 			self.events_neg[y][x][1:] = self.events_neg[y][x][0:-1]
 			self.events_neg[y][x][0] = time			
 
-	def extract_stmp_window(self,x,y,polarity,time,s_window,e_window):
+	def update_image(self):
+		self.event_im[:,:,0] = self.events_pos[:,:,0] > 0
+		self.event_im[:,:,2] = self.events_neg[:,:,0] > 0
+
+	def insert_flow(self,x,y,vx,vy,polarity):
+		if polarity == 1:
+			self.v_pos_x[y][x] = vx
+			self.v_pos_y[y][x] = vy
+		else:
+			self.v_pos_x[y][x] = vx
+			self.v_pos_y[y][x] = vy
+
+		self.vx = self.v_pos_x + self.v_neg_x
+		self.vy = self.v_pos_x + self.v_neg_x
+
+	def extract_stmp_window(self,x,y,polarity,time,s_window):
 		xmin = x - s_window
 		xmax = x + s_window
 		ymin = y - s_window
@@ -64,9 +96,9 @@ class event_image:
 		ys = np.repeat(np.arange(ymin,ymax+1),N)
 
 		if polarity == 1:
-			events = self.events_pos[ys][xs].reshape(-1)
+			events = self.events_pos[ys,xs].reshape(-1)
 		else:
-			events = self.events_neg[ys][xs].reshape(-1)
+			events = self.events_neg[ys,xs].reshape(-1)
 
 		xs = np.repeat(xs, self.N_buffer)
 		ys = np.repeat(ys, self.N_buffer)
