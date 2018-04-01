@@ -34,9 +34,12 @@ def main(fname):
 	t_proc = 0
 	cnt = 0
 	f_cnt = 0
+	N_events = 0
 
-	# plt.ion()
+	plt.ion()
 	# ys,xs = np.meshgrid(np.arange(events.nr),np.arange(events.nc))
+
+	plt.figure(1)
 
 	while True:
 
@@ -48,6 +51,7 @@ def main(fname):
 			# print t_window, e_cnt
 			t_start = time
 			e_cnt = 0
+			print t_window
 
 
 
@@ -58,14 +62,14 @@ def main(fname):
 			(x_stmp,y_stmp,t_stmp) = events_buffer.extract_stmp_window(x,y,polarity,\
 				time,s_window,t_window)
 
-		# calculate flow
-		N_events = len(x_stmp)
+			# calculate flow
+			N_events = len(x_stmp)
 
-		if N_events > e_min:
+		if N_events > e_min and np.std(t_stmp) > 0.001:
 			vx,vy = estimate_flow(x,y,time,x_stmp,y_stmp,t_stmp,polarity)
 			flow.insert_flow(x, y, vx, vy, polarity)
 			f_cnt += 1
-			print vx,vy
+			# print vx,vy
 
 		e_cnt += 1 #count events that occured
 
@@ -74,9 +78,8 @@ def main(fname):
 		events_buffer.insert_event(x, y, polarity, time)
 
 		# gather stats
-		N_events_sum += len(x_stmp)
+		N_events_sum += N_events
 		cnt += 1
-
 
 
 		if (time - start_t_fps) > ts:
@@ -88,12 +91,20 @@ def main(fname):
 			img = flow.draw_arrow(img)
 			cv2.imshow('events', img)
 
-		# 	# plt.figure(1)
-		# 	# plt.quiver(xs,ys,flow.vx.reshape(-1)*1e6,flow.vy.reshape(-1)*1e6)
-		# 	# plt.pause(1)
-		# 	# plt.draw()
+			# cv2.imshow('angle', flow.get_angle_im())
 
 			cv2.waitKey(1)
+			
+			plt.clf()
+			plt.figure(1)
+			plt.quiver(flow.xs,flow.ys,flow.vx,flow.vy,color='g',width=0.001)
+			plt.imshow(events_buffer.event_im)
+			
+			# plt.xlim((0,events.nc))
+			# plt.ylim((0,events.nr))
+			plt.draw()
+			plt.pause(0.001)
+
 			events_buffer.reset_image()
 			flow.reset_flow()
 

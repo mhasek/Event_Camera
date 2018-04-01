@@ -111,7 +111,7 @@ class flow_image:
 
 	def insert_flow(self,x,y,vx,vy,polarity):
 
-		if ~np.isnan(vx) and ~np.isnan(vy) and abs(vx)<10 and abs(vy)<10 and ~np.isinf(vx) and ~np.isinf(vy):
+		if ~np.isnan(vx) and ~np.isnan(vy) and ~np.isinf(vx) and ~np.isinf(vy):
 			# self.vx[y][x] = vx
 			# self.vy[y][x] = vy
 			self.vx.append(float(vx))
@@ -119,7 +119,12 @@ class flow_image:
 			self.xs.append(x)
 			self.ys.append(y)
 
+	def get_angle_im(self):
+		image  = np.zeros((self.nr,self.nc))
 
+		image[self.ys][self.xs] = np.arctan2(np.array(self.vy),np.array(self.vx))
+
+		return image
 
 	def reset_flow(self):
 		# self.vx = np.zeros((self.nr,self.nc))
@@ -145,6 +150,6 @@ class flow_image:
 				pts_1 = (self.xs[i],self.ys[i])
 				pts_2 = (int(self.xs[i]+self.vx[i]),int(self.ys[i]+self.vy[i]))
 
-				cv2.arrowedLine(img, pts_1, pts_2, (255,0,255),tipLength=0.001)
+				cv2.arrowedLine(img, pts_1, pts_2, (255,0,255),1,line_type = 8)
 		
 		return img
