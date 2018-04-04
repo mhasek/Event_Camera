@@ -94,62 +94,60 @@ class flow_image:
 
 		self.nr = nr
 		self.nc = nc
-		
-		# self.vx = np.zeros((nr,nc))
-		# self.vy = np.zeros((nr,nc))
 
-		# self.ys,self.xs = np.meshgrid(np.arange(nr),np.arange(nc))
-		
-		# self.ys = self.ys.reshape(-1)
-		# self.xs = self.xs.reshape(-1)
+		self.vx_pos = []
+		self.vy_pos = []
+		self.ys_pos = []
+		self.xs_pos = []
 
-		self.vx = []
-		self.vy = []
-		self.ys = []
-		self.xs = []
+		self.vx_neg = []
+		self.vy_neg = []
+		self.ys_neg = []
+		self.xs_neg = []
 
 
 	def insert_flow(self,x,y,vx,vy,polarity):
 
 		if ~np.isnan(vx) and ~np.isnan(vy) and ~np.isinf(vx) and ~np.isinf(vy):
-			# self.vx[y][x] = vx
-			# self.vy[y][x] = vy
-			self.vx.append(float(vx))
-			self.vy.append(float(vy))
-			self.xs.append(x)
-			self.ys.append(y)
 
-	def get_angle_im(self):
-		image  = np.zeros((self.nr,self.nc))
-
-		image[self.ys][self.xs] = np.arctan2(np.array(self.vy),np.array(self.vx))
-
-		return image
+			if polarity == 1:
+				self.vx_pos.append(float(vx))
+				self.vy_pos.append(float(vy))
+				self.xs_pos.append(x)
+				self.ys_pos.append(y)
+			else:
+				self.vx_neg.append(float(vx))
+				self.vy_neg.append(float(vy))
+				self.xs_neg.append(x)
+				self.ys_neg.append(y)
 
 	def reset_flow(self):
-		# self.vx = np.zeros((self.nr,self.nc))
-		# self.vy = np.zeros((self.nr,self.nc))
 
-		self.vx = []
-		self.vy = []
-		self.ys = []
-		self.xs = []
+		self.vx_pos = []
+		self.vy_pos = []
+		self.ys_pos = []
+		self.xs_pos = []
+
+		self.vx_neg = []
+		self.vy_neg = []
+		self.ys_neg = []
+		self.xs_neg = []
 		
-	def draw_arrow(self,img):
-		# pts_x = np.round(self.vx.reshape(-1)*1e-2 + self.xs)
-		# pts_y = np.round(self.vy.reshape(-1)*1e-2 + self.ys)
+	# def draw_arrow(self,img):
+	# 	# pts_x = np.round(self.vx.reshape(-1)*1e-2 + self.xs)
+	# 	# pts_y = np.round(self.vy.reshape(-1)*1e-2 + self.ys)
 
-		# pts_1 = np.array((self.xs,self.ys)).T.reshape(-1,1,2)
-		# pts_2 = np.array((pts_x,pts_y)).T.reshape(-1,1,2)
-		N = len(self.xs)
-		if N > 0:
+	# 	# pts_1 = np.array((self.xs,self.ys)).T.reshape(-1,1,2)
+	# 	# pts_2 = np.array((pts_x,pts_y)).T.reshape(-1,1,2)
+	# 	N = len(self.xs)
+	# 	if N > 0:
 
-			for i in range(N):
-				# pts_1 = (int(self.xs[i]),int(self.ys[i]))
-				# pts_2 = (int(pts_x[i]),int(pts_y[i]))
-				pts_1 = (self.xs[i],self.ys[i])
-				pts_2 = (int(self.xs[i]+self.vx[i]),int(self.ys[i]+self.vy[i]))
+	# 		for i in range(N):
+	# 			# pts_1 = (int(self.xs[i]),int(self.ys[i]))
+	# 			# pts_2 = (int(pts_x[i]),int(pts_y[i]))
+	# 			pts_1 = (self.xs[i],self.ys[i])
+	# 			pts_2 = (int(self.xs[i]+self.vx[i]),int(self.ys[i]+self.vy[i]))
 
-				cv2.arrowedLine(img, pts_1, pts_2, (255,0,255),1,line_type = 8)
+	# 			cv2.arrowedLine(img, pts_1, pts_2, (255,0,255),1,line_type = 8)
 		
-		return img
+	# 	return img

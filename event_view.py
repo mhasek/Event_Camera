@@ -12,17 +12,17 @@ fname = sys.argv[1]
 def main(fname):
 	events = event_stream(fname)
 
-	N_buffer = 5
-	s_window = 10
-	e_min = (s_window*2 + 1)
+	N_buffer = 10
+	s_window = 3
+	e_min = 10 #0.5*(s_window*2 + 1)
 	t_window = 0.005
 
 	N_events_sum = 0
 
 	events_buffer = event_image(nr = events.nr, nc = events.nc , pixel_buffer = N_buffer)
 	flow = flow_image(nr = events.nr, nc = events.nc) 
-	cv2.namedWindow('events',cv2.WINDOW_NORMAL)
-	cv2.resizeWindow('events', 692,520)
+	# cv2.namedWindow('events',cv2.WINDOW_NORMAL)
+	# cv2.resizeWindow('events', 692,520)
 
 
 	e_cnt = 0
@@ -44,9 +44,10 @@ def main(fname):
 	while True:
 
 		(x,y,polarity,time) = events.get_event()
+		# print x,y,time
 
 		# update temnporal window size
-		if e_cnt > events.nr*events.nc*0.03:
+		if e_cnt > 10000: #events.nr*events.nc*0.05:
 			t_window = time - t_start
 			# print t_window, e_cnt
 			t_start = time
@@ -65,10 +66,12 @@ def main(fname):
 			# calculate flow
 			N_events = len(x_stmp)
 
-		if N_events > e_min and np.std(t_stmp) > 0.001:
-			vx,vy = estimate_flow(x,y,time,x_stmp,y_stmp,t_stmp,polarity)
-			flow.insert_flow(x, y, vx, vy, polarity)
-			f_cnt += 1
+		if N_events > e_min and np.std(t_stmp) > 0.0001:
+			vx,vy,flag = estimate_flow(x,y,time,x_stmp,y_stmp,t_stmp,polarity)
+			if flag==1:
+				flow.insert_flow(x, y, vx, vy, polarity)
+				f_cnt += 1
+
 			# print vx,vy
 
 		e_cnt += 1 #count events that occured
@@ -87,17 +90,21 @@ def main(fname):
 			print cnt, round(float(N_events_sum)/cnt,3), round(float(f_cnt)/cnt,3)\
 			, round(time,3), round((get_t.time() - t_proc),3)
 
-			img = events_buffer.event_im
-			img = flow.draw_arrow(img)
-			cv2.imshow('events', img)
+			# img = events_buffer.event_im
+			# img = flow.draw_arrow(img)
+			# cv2.imshow('events', img)
 
 			# cv2.imshow('angle', flow.get_angle_im())
 
-			cv2.waitKey(1)
+			# cv2.waitKey(1)
 			
 			plt.clf()
 			plt.figure(1)
-			plt.quiver(flow.xs,flow.ys,flow.vx,flow.vy,color='g',width=0.001)
+			plt.quiver(flow.xs_pos,flow.ys_pos,flow.vx_pos,flow.vy_pos,color='g',width=0.002,\
+				angles='xy', scale_units='xy',scale=10)
+
+			plt.quiver(flow.xs_neg,flow.ys_neg,flow.vx_neg,flow.vy_neg,color='y',width=0.002,\
+				angles='xy', scale_units='xy',scale=10)
 			plt.imshow(events_buffer.event_im)
 			
 			# plt.xlim((0,events.nc))
