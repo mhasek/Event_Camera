@@ -7,6 +7,8 @@ def estimate_flow(x,y,t,x_stmp,y_stmp,t_stmp,polarity):
 
 	vec = 0
 
+	N = len(x_stmp) + 1
+
 	rel_x = np.float64(np.append(x_stmp,x))
 	rel_x -= np.mean(rel_x)
 
@@ -17,11 +19,13 @@ def estimate_flow(x,y,t,x_stmp,y_stmp,t_stmp,polarity):
 	rel_t -= np.mean(rel_t)
 
 	xyt = np.array((rel_x,rel_y,rel_t))
+
 	
 	norm_factor = np.max(np.abs(xyt),axis=1) + np.finfo(float).eps
 
 	xyt_norm = xyt/np.tile(norm_factor,(len(rel_x),1)).T
 	xyt_norm[2,:]*=1e3
+
 
 
 	# if np.isnan(xyt_norm).sum() >= 1 or np.isinf(xyt_norm).sum() >= 1:
@@ -39,14 +43,17 @@ def estimate_flow(x,y,t,x_stmp,y_stmp,t_stmp,polarity):
 	vec = vecs[:,np.argmax(eig)]*norm_factor
 
 	# print vec, round(eig[0], 2),round(eig[1], 2) ,round(eig[2], 2), flag
+	score = np.mean(np.abs(np.sum(np.tile(vecs[:,1],(N,1))*xyt_norm.T,axis=1)))
+
+	# print score
+
+	# if score > 0.3:
+	# 	flag = 0
+
+
 
 	vx = vec[0]*1e3/vec[2]
 	vy = vec[1]*1e3/vec[2]
-
-
-	# if polarity == 1:
-	# 	vx = -vx
-	# 	vy = -vy
 
 	
 	return vx,vy,flag
